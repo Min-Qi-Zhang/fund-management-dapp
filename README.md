@@ -38,3 +38,16 @@ Blockchain:
 - [Solidity](https://docs.soliditylang.org/): Language used to build smart contracts
 - [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts): a library of well tested smart contracts, including ERC20
 - [Etherscan](https://etherscan.io/): Block explorer
+
+## How to test
+Before starting the steps, run `npm install` inside `Smart-Contracts` folder.
+
+Step 1: Compile the contracts
+```
+cd Smart-Contracts/contracts && npx hardhat compile
+```
+
+Step 2: Run the test
+```
+cd Smart-Contracts/test && npx hardhat test
+```
