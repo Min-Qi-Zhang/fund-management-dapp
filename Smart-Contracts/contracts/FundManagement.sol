@@ -75,6 +75,7 @@ contract FundManagement {
      */
     function deposit(uint256 depositAmt) public payable {
         require(depositAmt * (10**17) == msg.value, "Deposit amt does not match");
+        require(depositAmt <= token.balanceOf(address(this)), "Not enough supply");
         require(depositAmt >= minBuy, "Deposit amt is less than minBuy");
         stakeholders[msg.sender] += depositAmt; // in ETH
         token.transfer(msg.sender, depositAmt);  // in FMD
@@ -128,7 +129,7 @@ contract FundManagement {
         require(msg.sender == admin, "Caller is not admin");
         require(spendingId <= spendingIdCounter, "Invalid spendingId");
         require(msg.value == spending[spendingId].amt * (10**17), "Spending amt must match to msg.value");
-        require(spending[spendingId].approvalCount / totalTokens * 100 >= spendingMinVotePercent, "Not enough approvals");
+        require(totalTokens > 0 && spending[spendingId].approvalCount / totalTokens * 100 >= spendingMinVotePercent, "Not enough approvals");
 
         payable(spending[spendingId].receiver).transfer(msg.value);
 
