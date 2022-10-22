@@ -110,6 +110,7 @@ contract FundManagement {
      */
     function approveSpending(uint256 spendingId, bool vote) public {
         require(spendingId <= spendingIdCounter, "Invalid spendingId");
+        require(token.balanceOf(msg.sender) > 0, "Stakeholder does not exist");
         spending[spendingId].approvals[msg.sender] = vote;
         if (vote) {
             spending[spendingId].approvalCount += token.balanceOf(msg.sender);
@@ -141,6 +142,14 @@ contract FundManagement {
      */
     function getShareToken() public view returns (address) {
         return shareToken;
+    }
+
+    /**
+     * @dev Returns the token amount of a stakeholder
+     * @param stakeholder the address of stakeholder
+     */
+    function getStakeholderAmount(address stakeholder) public view returns (uint256) {
+        return stakeholders[stakeholder];
     }
 
 }
