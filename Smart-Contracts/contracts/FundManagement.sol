@@ -49,7 +49,7 @@ contract FundManagement {
     /**
      * @dev Sets the admin and minBuy
      * @param _admin the address of Fund Manager
-     * @param _minBuy the min amt ETH to deposite to become a stakeholder
+     * @param _minBuy the min number of 0.1 ETH to deposit to become a stakeholder
      */
     constructor(address _admin, uint256 _minBuy) {
         require(_minBuy > 0, "minBuy must be more than 0");
@@ -71,13 +71,13 @@ contract FundManagement {
 
     /**
      * @dev Deposit money (in ETH) to stakeholder account
-     * @param depositAmt the amt to deposit
+     * @param depositAmt the count of 0.1 ETH to deposit
      */
     function deposit(uint256 depositAmt) public payable {
-        require(depositAmt * (10**18) == msg.value, "Deposit amt does not match");
+        require(depositAmt * (10**17) == msg.value, "Deposit amt does not match");
         require(depositAmt >= minBuy, "Deposit amt is less than minBuy");
         stakeholders[msg.sender] += depositAmt; // in ETH
-        token.transfer(msg.sender, depositAmt*10);  // in FMD
+        token.transfer(msg.sender, depositAmt);  // in FMD
 
         emit Deposit(msg.sender, depositAmt);
     }
@@ -85,7 +85,7 @@ contract FundManagement {
     /**
      * @dev Admin creates a Spending request
      * @param receiver the receiver of the Spending
-     * @param spendingAmt the amt of Spending
+     * @param spendingAmt the amt (of 0.1 ETH) of Spending
      * @param purpose the purpose of Spending
      */
     function createSpending(address receiver, uint256 spendingAmt, string memory purpose) public {
@@ -126,7 +126,7 @@ contract FundManagement {
     function executeSpending(uint256 spendingId) public payable {
         require(msg.sender == admin, "Caller is not admin");
         require(spendingId <= spendingIdCounter, "Invalid spendingId");
-        require(msg.value == spending[spendingId].amt * (10**18), "Spending amt must match to msg.value");
+        require(msg.value == spending[spendingId].amt * (10**17), "Spending amt must match to msg.value");
         require(spending[spendingId].approvalCount / totalTokens * 100 >= spendingMinVotePercent, "Not enough approvals");
 
         payable(spending[spendingId].receiver).transfer(msg.value);
