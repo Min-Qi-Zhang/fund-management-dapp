@@ -51,3 +51,8 @@ Step 2: Run the test
 ```
 cd Smart-Contracts/test && npx hardhat test
 ```
+
+## Deploy the contract
+```
+cd Smart-Contracts && npx hardhat run scripts/deploy.js --network goerli
+```
