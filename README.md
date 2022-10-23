@@ -40,22 +40,25 @@ Blockchain:
 - [Etherscan](https://etherscan.io/): Block explorer
 
 ## How to test
-Before starting the steps, run `npm install` inside `Smart-Contracts` folder.
+Before starting the test, run `npm install` inside `Smart-Contracts` folder. The lines 13-20 in `hardhat.config.js` should be commented out.
 
 Step 1: Compile the contracts
 ```
-cd Smart-Contracts/contracts && npx hardhat compile
+cd Smart-Contracts && npx hardhat compile
 ```
 
 Step 2: Run the test
 ```
-cd Smart-Contracts/test && npx hardhat test
+cd Smart-Contracts && npx hardhat test
 ```
 
 ## Deploy the contract
+Before run the script, make sure to uncomment the line 13-20 in `hardhat.config.js`.
 ```
 cd Smart-Contracts && npx hardhat run scripts/deploy.js --network goerli
 ```
 
 FundManagement is deployed at address:  `0x978Fd7aF1b995373C3bCc4a3DB0d69714E561058`
 FMD token is deployed at address:  `0xef4c597986a2241D5fED9aadcb4E33a24e2D5483`
+
+The website is deployed at `https://heartfelt-tapioca-39c869.netlify.app/`
