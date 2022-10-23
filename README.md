@@ -4,6 +4,32 @@ This dApp allows people to deposit ETH into decentralized fund, and in return th
 
 The fund manager (admin) can create new spending requests in benefit of the fund, such as paying for building new software or hiring new employees. The stakeholders can then vote on such proposals. If the minimum approval votes (75% of all tokens) have been met, the admin can execute the spending, which send the ETH to a given address.
 
+## How to test
+Before starting the test, run `npm install` inside `Smart-Contracts` folder. The lines 13-20 in `hardhat.config.js` should be commented out.
+
+Step 1: Compile the contracts
+```
+cd Smart-Contracts && npx hardhat compile
+```
+
+Step 2: Run the test
+```
+cd Smart-Contracts && npx hardhat test
+```
+
+## Deploy the contract
+Before run the script, make sure to uncomment the line 13-20 in `hardhat.config.js`.
+```
+cd Smart-Contracts && npx hardhat run scripts/deploy.js --network goerli
+```
+
+FundManagement is deployed at address:  `0x978Fd7aF1b995373C3bCc4a3DB0d69714E561058`
+
+FMD token is deployed at address:  `0xef4c597986a2241D5fED9aadcb4E33a24e2D5483`
+
+The website is deployed at `https://heartfelt-tapioca-39c869.netlify.app/`
+
+
 ## Criteria
 
 1. The Smart Contracts must be developed using the following Tech Stack.
@@ -38,27 +64,3 @@ Blockchain:
 - [Solidity](https://docs.soliditylang.org/): Language used to build smart contracts
 - [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts): a library of well tested smart contracts, including ERC20
 - [Etherscan](https://etherscan.io/): Block explorer
-
-## How to test
-Before starting the test, run `npm install` inside `Smart-Contracts` folder. The lines 13-20 in `hardhat.config.js` should be commented out.
-
-Step 1: Compile the contracts
-```
-cd Smart-Contracts && npx hardhat compile
-```
-
-Step 2: Run the test
-```
-cd Smart-Contracts && npx hardhat test
-```
-
-## Deploy the contract
-Before run the script, make sure to uncomment the line 13-20 in `hardhat.config.js`.
-```
-cd Smart-Contracts && npx hardhat run scripts/deploy.js --network goerli
-```
-
-FundManagement is deployed at address:  `0x978Fd7aF1b995373C3bCc4a3DB0d69714E561058`
-FMD token is deployed at address:  `0xef4c597986a2241D5fED9aadcb4E33a24e2D5483`
-
-The website is deployed at `https://heartfelt-tapioca-39c869.netlify.app/`
