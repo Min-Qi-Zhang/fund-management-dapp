@@ -15,6 +15,6 @@ contract FMD is ERC20 {
      * @param initialSupply the initial supply of FMD token
      */
     constructor(address _manager, uint256 initialSupply) ERC20("FundToken", "FMD") {
-        _mint(_manager, initialSupply);
+        _mint(_manager, initialSupply * (10**18));
     }
 }

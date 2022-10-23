@@ -41,6 +41,7 @@ contract FundManagement {
     address public shareToken;
 
     event Deposit(address indexed newStakeholder, uint256 depositAmt);
+    event Withdraw(address indexed stakeholder, uint256 withdrawAmt);
     event Vote(address indexed voter, bool vote);
     event NewSpending(address indexed receiver, uint256 spendingAmt);
     event SpendingExecuted(address indexed executor, uint256 indexed spendingId);
@@ -75,12 +76,30 @@ contract FundManagement {
      */
     function deposit(uint256 depositAmt) public payable {
         require(depositAmt * (10**17) == msg.value, "Deposit amt does not match");
-        require(depositAmt <= token.balanceOf(address(this)), "Not enough supply");
+        require(depositAmt * (10**18) <= token.balanceOf(address(this)), "Not enough supply");
         require(depositAmt >= minBuy, "Deposit amt is less than minBuy");
-        stakeholders[msg.sender] += depositAmt; // in ETH
-        token.transfer(msg.sender, depositAmt);  // in FMD
+        stakeholders[msg.sender] += depositAmt; // count of 0.1 ETH
+        totalTokens += depositAmt;
+        token.transfer(msg.sender, depositAmt * (10**18));  // in FMD
 
         emit Deposit(msg.sender, depositAmt);
+    }
+
+    /**
+     * @dev Withdraw ETH out from contract
+     * @param withdrawAmt the amount to withdraw (number of 0.1 ETH)
+     */
+    function withdraw(uint256 withdrawAmt) public {
+        require(withdrawAmt > 0, "withdrawAmt should be more than 0");
+        require(token.balanceOf(msg.sender) > 0, "Stakeholder does not exist");
+        require(token.allowance(msg.sender, address(this)) >= withdrawAmt * (10**18), "Number of tokens approved is not enough");
+        require(token.balanceOf(msg.sender) >= withdrawAmt * (10**18), "Can't withdraw more than the amt you deposited");
+        require(address(this).balance >= withdrawAmt * (10**17), "Not enough ETH in contract");
+        stakeholders[msg.sender] -= withdrawAmt;
+        totalTokens -= withdrawAmt;
+        token.transferFrom(msg.sender, address(this), withdrawAmt * (10**18));
+        payable(msg.sender).transfer(withdrawAmt * (10**17));
+        emit Withdraw(msg.sender, withdrawAmt);
     }
 
     /**
@@ -115,7 +134,6 @@ contract FundManagement {
         spending[spendingId].approvals[msg.sender] = vote;
         if (vote) {
             spending[spendingId].approvalCount += token.balanceOf(msg.sender);
-            totalTokens += token.balanceOf(msg.sender);
         }
 
         emit Vote(msg.sender, vote);
@@ -125,13 +143,13 @@ contract FundManagement {
      * @dev Send money (ETH) to address if there are enough approvals
      * @param spendingId the id of Spending to execute
      */
-    function executeSpending(uint256 spendingId) public payable {
+    function executeSpending(uint256 spendingId) public {
         require(msg.sender == admin, "Caller is not admin");
         require(spendingId <= spendingIdCounter, "Invalid spendingId");
-        require(msg.value == spending[spendingId].amt * (10**17), "Spending amt must match to msg.value");
         require(totalTokens > 0 && spending[spendingId].approvalCount / totalTokens * 100 >= spendingMinVotePercent, "Not enough approvals");
+        require(!spending[spendingId].executed, "This spending was executed");
 
-        payable(spending[spendingId].receiver).transfer(msg.value);
+        payable(spending[spendingId].receiver).transfer(spending[spendingId].amt * (10**17));
 
         spending[spendingId].executed = true;
 

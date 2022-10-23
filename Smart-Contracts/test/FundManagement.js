@@ -36,8 +36,6 @@ describe("FundManagement", () => {
       .to.emit(contract, "Deposit")
       .withArgs(signers[1].address, 2);
 
-    expect(await token.balanceOf(signers[1].address)).to.equal(2);
-
     expect(await contract.getStakeholderAmount(signers[1].address)).to.equal(2);
   });
 
@@ -51,18 +49,74 @@ describe("FundManagement", () => {
   });
 
   it("Deposit amount is more than supply", async () => {
-    await contract
-      .connect(signers[1])
-      .deposit(500, {
-        value: ethers.utils.parseEther("50"),
-        gasLimit: 3000000,
-      });
+    await contract.connect(signers[1]).deposit(500, {
+      value: ethers.utils.parseEther("50"),
+      gasLimit: 3000000,
+    });
     await expect(
       contract.connect(signers[2]).deposit(501, {
         value: ethers.utils.parseEther("50.1"),
         gasLimit: 3000000,
       })
     ).to.be.revertedWith("Not enough supply");
+  });
+
+  it("Withdraw 0.1 ETH from contract", async () => {
+    await contract
+      .connect(signers[1])
+      .deposit(2, { value: ethers.utils.parseEther("0.2"), gasLimit: 3000000 });
+    await token
+      .connect(signers[1])
+      .approve(contract.address, ethers.utils.parseEther("1.0"));
+
+    await expect(
+      contract.connect(signers[1]).withdraw(1, { gasLimit: 3000000 })
+    )
+      .to.emit(contract, "Withdraw")
+      .withArgs(signers[1].address, 1);
+    expect(await contract.getStakeholderAmount(signers[1].address)).to.equal(1);
+  });
+
+  it("Withdraw 0 ETH from contract", async () => {
+    await contract
+      .connect(signers[1])
+      .deposit(2, { value: ethers.utils.parseEther("0.2"), gasLimit: 3000000 });
+    await token
+      .connect(signers[1])
+      .approve(contract.address, ethers.utils.parseEther("1.0"));
+
+    await expect(
+      contract.connect(signers[1]).withdraw(0, { gasLimit: 3000000 })
+    ).revertedWith("withdrawAmt should be more than 0");
+  });
+
+  it("Withdraw 0.1 ETH from contract by non-stakeholder", async () => {
+    await expect(
+      contract.connect(signers[2]).withdraw(1, { gasLimit: 3000000 })
+    ).revertedWith("Stakeholder does not exist");
+  });
+
+  it("Withdraw 0.1 ETH from contract without enough allowance", async () => {
+    await contract
+      .connect(signers[1])
+      .deposit(2, { value: ethers.utils.parseEther("0.2"), gasLimit: 3000000 });
+
+    await expect(
+      contract.connect(signers[1]).withdraw(1, { gasLimit: 3000000 })
+    ).revertedWith("Number of tokens approved is not enough");
+  });
+
+  it("Withdraw more than deposited amount", async () => {
+    await contract
+      .connect(signers[1])
+      .deposit(2, { value: ethers.utils.parseEther("0.2"), gasLimit: 3000000 });
+    await token
+      .connect(signers[1])
+      .approve(contract.address, ethers.utils.parseEther("3.0"));
+
+    await expect(
+      contract.connect(signers[1]).withdraw(3, { gasLimit: 3000000 })
+    ).revertedWith("Can't withdraw more than the amt you deposited");
   });
 
   it("Create spending", async () => {
@@ -126,16 +180,11 @@ describe("FundManagement", () => {
       .connect(signers[1])
       .deposit(2, { value: ethers.utils.parseEther("0.2"), gasLimit: 3000000 });
 
-    await contract.createSpending(signers[1].address, 10, "some purpose");
+    await contract.createSpending(signers[1].address, 1, "some purpose");
 
     await contract.connect(signers[1]).approveSpending(1, true);
 
-    await expect(
-      contract.executeSpending(1, {
-        value: ethers.utils.parseEther("1.0"),
-        gasLimit: 3000000,
-      })
-    )
+    await expect(contract.executeSpending(1, { value: 0, gasLimit: 3000000 }))
       .to.emit(contract, "SpendingExecuted")
       .withArgs(signers[0].address, 1);
   });
@@ -145,17 +194,12 @@ describe("FundManagement", () => {
       .connect(signers[1])
       .deposit(2, { value: ethers.utils.parseEther("0.2"), gasLimit: 3000000 });
 
-    await contract.createSpending(signers[1].address, 10, "some purpose");
+    await contract.createSpending(signers[1].address, 1, "some purpose");
 
     await contract.connect(signers[1]).approveSpending(1, true);
 
     await expect(
-      contract
-        .connect(signers[2])
-        .executeSpending(1, {
-          value: ethers.utils.parseEther("1.0"),
-          gasLimit: 3000000,
-        })
+      contract.connect(signers[2]).executeSpending(1, { gasLimit: 3000000 })
     ).to.be.revertedWith("Caller is not admin");
   });
 
@@ -164,47 +208,40 @@ describe("FundManagement", () => {
       .connect(signers[1])
       .deposit(2, { value: ethers.utils.parseEther("0.2"), gasLimit: 3000000 });
 
-    await contract.createSpending(signers[1].address, 10, "some purpose");
+    await contract.createSpending(signers[1].address, 1, "some purpose");
 
     await contract.connect(signers[1]).approveSpending(1, true);
 
     await expect(
-      contract.executeSpending(10, {
-        value: ethers.utils.parseEther("1.0"),
-        gasLimit: 3000000,
-      })
+      contract.executeSpending(10, { gasLimit: 3000000 })
     ).to.be.revertedWith("Invalid spendingId");
   });
 
-  it("Execute spending, but msg.value does not match spendingAmt", async () => {
+  it("Execute spending without enough approvals", async () => {
     await contract
       .connect(signers[1])
       .deposit(2, { value: ethers.utils.parseEther("0.2"), gasLimit: 3000000 });
 
-    await contract.createSpending(signers[1].address, 10, "some purpose");
+    await contract.createSpending(signers[1].address, 1, "some purpose");
+
+    await expect(
+      contract.executeSpending(1, { gasLimit: 3000000 })
+    ).to.be.revertedWith("Not enough approvals");
+  });
+
+  it("Execute the executed spending", async () => {
+    await contract
+      .connect(signers[1])
+      .deposit(2, { value: ethers.utils.parseEther("0.2"), gasLimit: 3000000 });
+
+    await contract.createSpending(signers[1].address, 1, "some purpose");
 
     await contract.connect(signers[1]).approveSpending(1, true);
 
-    await expect(
-      contract.executeSpending(1, {
-        value: ethers.utils.parseEther("2.0"),
-        gasLimit: 3000000,
-      })
-    ).to.be.revertedWith("Spending amt must match to msg.value");
-  });
-
-  it("Execute spending with not enough approvals", async () => {
-    await contract
-      .connect(signers[1])
-      .deposit(2, { value: ethers.utils.parseEther("0.2"), gasLimit: 3000000 });
-
-    await contract.createSpending(signers[1].address, 10, "some purpose");
+    await contract.executeSpending(1, { gasLimit: 3000000 });
 
     await expect(
-      contract.executeSpending(1, {
-        value: ethers.utils.parseEther("1.0"),
-        gasLimit: 3000000,
-      })
-    ).to.be.revertedWith("Not enough approvals");
+      contract.executeSpending(1, { gasLimit: 3000000 })
+    ).to.be.revertedWith("This spending was executed");
   });
 });
