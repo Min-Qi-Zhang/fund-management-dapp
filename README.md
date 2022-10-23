@@ -56,3 +56,6 @@ cd Smart-Contracts/test && npx hardhat test
 ```
 cd Smart-Contracts && npx hardhat run scripts/deploy.js --network goerli
 ```
+
+FundManagement is deployed at address:  `0x978Fd7aF1b995373C3bCc4a3DB0d69714E561058`
+FMD token is deployed at address:  `0xef4c597986a2241D5fED9aadcb4E33a24e2D5483`
