@@ -31,25 +31,28 @@ class DepositCard extends Component {
   }
 
   depositOrWithDraw = async () => {
-    this.props.requestAccount();
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(this.props.contractAddress, this.props.contractAbi, signer);
-    try {
-      if (this.state.mode === 'Deposit') {
-        await contract.deposit(this.state.fmd, {
-          value: ethers.utils.parseEther(this.state.eth.toString())
-        });
-        alert("Deposit successful!");
-      } else if (this.state.mode === 'Withdraw') {
-        const token = new ethers.Contract(this.props.tokenAddress, this.props.tokenAbi, signer);
-        let tx = await token.approve(this.props.contractAddress, ethers.utils.parseEther(this.state.fmd.toString()));
-        await tx.wait();
-        await contract.withdraw(this.state.fmd);
-        alert("Withdraw successful!");
+    if (typeof window.ethereum !== 'undefined') {
+      this.props.requestAccount();
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(this.props.contractAddress, this.props.contractAbi, signer);
+      try {
+        if (this.state.mode === 'Deposit') {
+          let tx = await contract.deposit(this.state.fmd, {
+            value: ethers.utils.parseEther(this.state.eth.toString())
+          });
+          await tx.wait();
+          alert("Deposit successful!");
+        } else if (this.state.mode === 'Withdraw') {
+          const token = new ethers.Contract(this.props.tokenAddress, this.props.tokenAbi, signer);
+          let tx = await token.approve(this.props.contractAddress, ethers.utils.parseEther(this.state.fmd.toString()));
+          await tx.wait();
+          await contract.withdraw(this.state.fmd);
+          alert("Withdraw successful!");
+        }
+      } catch (err) {
+        console.log('Error: ', err);
       }
-    } catch (err) {
-      console.log('Error: ', err);
     }
   };
 
