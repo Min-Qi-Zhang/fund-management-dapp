@@ -1,5 +1,4 @@
 import { Component } from 'react';
-import { ethers } from 'ethers';
 import FundManagement from './artifacts/contracts/FundManagement.sol/FundManagement.json';
 import FMD from './artifacts/contracts/FMD.sol/FMD.json';
 import './App.css';

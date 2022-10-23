@@ -3,6 +3,7 @@ import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { ethers } from 'ethers';
+import Alert from 'react-bootstrap/Alert';
 
 class CreateSpendingCard extends Component {
   constructor(props) {
@@ -11,10 +12,12 @@ class CreateSpendingCard extends Component {
       receiver: "",
       spendingAmt: 0,
       purpose: "",
+      error: ''
     };
   }
 
   submit = async () => {
+    this.setState({error: ''});
     if (typeof window.ethereum !== 'undefined') {
       this.props.requestAccount();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -24,8 +27,8 @@ class CreateSpendingCard extends Component {
         let tx = await contract.createSpending(this.state.receiver, this.state.spendingAmt, this.state.purpose);
         await tx.wait();
         alert("CreateSpending Successful!");
-      } catch (err) {
-        console.log(err);
+      } catch (error) {
+        this.setState({error: error.reason});
       }
     }
   };
@@ -57,6 +60,7 @@ class CreateSpendingCard extends Component {
                 onChange={(e) => this.setState({ purpose: e.target.value })}
               ></Form.Control>
             </Form.Group>
+            {this.state.error && <Alert variant="danger">{this.state.error}</Alert>}
             <Button variant="dark" onClick={() => this.submit()}>
               Submit
             </Button>

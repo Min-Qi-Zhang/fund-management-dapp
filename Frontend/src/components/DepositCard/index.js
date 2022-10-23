@@ -5,6 +5,7 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import { FaArrowDown } from "react-icons/fa";
 import { ethers } from 'ethers';
+import Alert from 'react-bootstrap/Alert';
 
 import "./index.css";
 
@@ -15,6 +16,7 @@ class DepositCard extends Component {
       mode: "Deposit",
       eth: 0,
       fmd: 0,
+      error: ''
     };
   }
 
@@ -31,6 +33,7 @@ class DepositCard extends Component {
   }
 
   depositOrWithDraw = async () => {
+    this.setState({error: ''});
     if (typeof window.ethereum !== 'undefined') {
       this.props.requestAccount();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -50,8 +53,8 @@ class DepositCard extends Component {
           await contract.withdraw(this.state.fmd);
           alert("Withdraw successful!");
         }
-      } catch (err) {
-        console.log('Error: ', err);
+      } catch (error) {
+        this.setState({error: error.reason});
       }
     }
   };
@@ -102,6 +105,7 @@ class DepositCard extends Component {
             <Form.Text muted>0.1ETH = 1FMD</Form.Text>
             <br />
             <Button variant="dark" onClick={() => this.depositOrWithDraw()}>{this.state.mode}</Button>
+            {this.state.error && <Alert variant="danger">{this.state.error}</Alert>}
           </Form>
         </Card.Body>
       </Card>
