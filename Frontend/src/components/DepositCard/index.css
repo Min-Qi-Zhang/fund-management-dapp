@@ -1,0 +1,11 @@
+.deposit_card {
+  width: 350px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.inputgroup_text {
+  width: 60px;
+}
